@@ -1,0 +1,43 @@
+/*
+ * File:   PWM.c
+ * Author: Jônatas
+ *
+ * Created on 5 de Outubro de 2022, 13:45
+ */
+
+
+#include <xc.h>
+#include <p24EP512GU810.h>
+_FOSCSEL(IESO_OFF & FNOSC_FRC)
+_FOSC(POSCMD_NONE & IOL1WAY_ON & OSCIOFNC_OFF);
+_FWDT(FWDTEN_OFF);
+_FPOR(BOREN_OFF);
+#define Enter PORTAbits.RA0
+#define Botao1 PORTAbits.RA1
+#define Botao7 PORTAbits.RA7
+unsigned int counter = 15;
+void main(void) {
+    ANSELA = 0;
+    ANSELB = 0;
+    TRISD = 0;
+    LATB = 0;
+    int inicio = 0;
+    _T1IP = 1; // Set Timer 1 interrupt priority
+    _T1IF = 0; // Clear Timer 1 interrupt flag
+    _T1IE = 1; // Enable Timer 1 interrupt
+    T1CONbits.TON = 1; // Turn on Timer 1
+    while (1){
+        if (Enter) inicio = 1;
+        if (inicio){
+            if (Botao1) counter = 1;
+            if (Botao7) counter = 7;
+            LATB = counter;
+        }       
+    }
+    return;
+}
+
+void __attribute__((__interrupt__, __auto_psv__)) _T1Interrupt(void) {
+    _T1IF = 0;
+    counter = counter--;
+}
